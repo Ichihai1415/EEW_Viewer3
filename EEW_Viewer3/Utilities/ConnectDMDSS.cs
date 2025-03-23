@@ -8,5 +8,6 @@ namespace EEW_Viewer3.Utilities
 {
     internal class ConnectDMDSS
     {
+
     }
 }
