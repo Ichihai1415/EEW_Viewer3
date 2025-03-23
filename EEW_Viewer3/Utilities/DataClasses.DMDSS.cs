@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace EEW_Viewer3
+namespace EEW_Viewer3.Utilities
 {
     public partial class DataClasses
     {

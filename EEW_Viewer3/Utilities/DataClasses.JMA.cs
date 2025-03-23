@@ -1,4 +1,4 @@
-﻿namespace EEW_Viewer3
+﻿namespace EEW_Viewer3.Utilities
 {
     public partial class DataClasses
     {
@@ -450,7 +450,7 @@ Information @type="沖合の津波観測に関する情報"
 
             }
 
-            /*
+            /*地震火山関連_解説資料.pdf
 緊急地震速報におけるHead/Headline/Informationの解説 
 11-2(2)．Information【見出し防災気象情報事項】（0回/3回） 
 本要素は緊急地震速報（警報）及び緊急地震速報（地震動予報）のみに出現し、緊急地震
@@ -626,7 +626,7 @@ Information @type="緊急地震速報(地方予報区)"
             {
                 var a = new EarthquakeEarlyWarning() { Head=new EarthquakeEarlyWarning.C_Head() { EventID= } };
             }*/
-            
+
             /// <summary>
             /// 緊急地震速報
             /// </summary>
