@@ -24,6 +24,5 @@ namespace EEW_Viewer3.Utilities
 
         public static string GetBasicBase64(string apiKey) => String2Base64(apiKey + ":");
 
-
     }
 }
