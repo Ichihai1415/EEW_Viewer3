@@ -287,7 +287,7 @@ EventDateTime 及び EventDateTimeUTC の@significant に記載する。
                         /// 【見出し防災気象情報事項】（0回以上）
                         /// </summary>
                         /// <remarks>地震火山関連XML電文では、情報によって本要素の運用が異なる。</remarks>
-                        public C_Information? Information { get; set; }
+                        public C_Information[]? Information { get; set; }
 
                         /// <summary>
                         /// 【見出し防災気象情報事項】（0回以上）
@@ -642,6 +642,12 @@ Information @type="緊急地震速報(地方予報区)"
                         /// 【見出し防災気象情報事項】（0回/3回）
                         /// </summary>
                         /// <remarks>本要素は緊急地震速報（警報）及び緊急地震速報（地震動予報）のみに出現し、緊急地震速報(予報)及び緊急地震速報の配信テスト電文には出現しない。また、情報形態（Head/InfoType）が“取消”の場合も出現しない。 緊急地震速報(警報)及び緊急地震速報（地震動予報）で本要素が出現する場合には、@type が“緊急地震速報(地方予報区)”、 “緊急地震速報(府県予報区)”、及び“緊急地震速報(細分区域)”である本要素が各々１回ずつ出現する。各々の Information 要素は子要素としてItem をもつ。 </remarks>
+                        public new C_Information[]? Information { get; set; }
+
+                        /// <summary>
+                        /// 【見出し防災気象情報事項】（0回/3回）
+                        /// </summary>
+                        /// <remarks>本要素は緊急地震速報（警報）及び緊急地震速報（地震動予報）のみに出現し、緊急地震速報(予報)及び緊急地震速報の配信テスト電文には出現しない。また、情報形態（Head/InfoType）が“取消”の場合も出現しない。 緊急地震速報(警報)及び緊急地震速報（地震動予報）で本要素が出現する場合には、@type が“緊急地震速報(地方予報区)”、 “緊急地震速報(府県予報区)”、及び“緊急地震速報(細分区域)”である本要素が各々１回ずつ出現する。各々の Information 要素は子要素としてItem をもつ。 </remarks>
                         public new class C_Information
                         {
                             /// <summary>
@@ -716,7 +722,7 @@ Information @type="緊急地震速報(地方予報区)"
                                 /// 【対象地域・地点】（1 回）
                                 /// </summary>
                                 /// <remarks>Kind 及び LastKind の防災気象情報名の組み合わせに該当する区域を記載する。Information/@type の値に応じて本要素の@codeType が“緊急地震速報／地方予報区”、 “緊急地震速報／府県予報区”、又は“地震情報／細分区域”に設定される。 子要素にAreaをもつ。 </remarks>
-                                public required C_Areas[] Areas { get; set; }
+                                public required C_Areas Areas { get; set; }
 
                                 /// <summary>
                                 /// 【対象地域・地点】（1 回）
@@ -729,6 +735,12 @@ Information @type="緊急地震速報(地方予報区)"
                                     /// </summary>
                                     /// <remarks>“緊急地震速報／地方予報区”、“緊急地震速報／府県予報区”、又は“地震情報／細分区域”に設定される。</remarks>
                                     public required string A_CodeType { get; set; }
+
+                                    /// <summary>
+                                    /// 【対象地域・地点】（1 回以上）  
+                                    /// </summary>
+                                    /// <remarks>子要素にNameとCodeをもつ。 </remarks>
+                                    public required C_Area[] Areas { get; set; }
 
                                     /// <summary>
                                     /// 【対象地域・地点】（1 回以上）  

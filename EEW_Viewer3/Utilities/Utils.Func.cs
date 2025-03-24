@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EEW_Viewer3.Utilities
+﻿namespace EEW_Viewer3.Utilities
 {
     internal partial class Utils
     {
@@ -48,5 +42,31 @@ namespace EEW_Viewer3.Utilities
             else
                 Console.Write(text);
         }
+
+        /// <summary>
+        /// ログを書き込みます。
+        /// </summary>
+        /// <param name="path">出力パス</param>
+        /// <param name="text">出力テキスト</param>
+        /// <param name="conWrite">ログ(<c>ConWrite("[WriteLog]" + path, ConsoleColor.Green);</c>)をコンソールに表示するか</param>
+        public static void WriteLog(string path, string text, bool conWrite = false)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, text);
+            if (conWrite)
+                ConWrite("[WriteLog]" + path, ConsoleColor.Green);
+        }
+
+        /// <summary>
+        /// 例外ログを書き込みます。
+        /// </summary>
+        /// <param name="path">出力パス</param>
+        /// <param name="ex">出力例外</param>
+        /// <param name="conWrite">コンソールに表示するか</param>
+        public static void WriteLog(string path, Exception ex, bool conWrite = false)
+        {
+            WriteLog(path, ex.ToString(), conWrite);
+        }
+
     }
 }
