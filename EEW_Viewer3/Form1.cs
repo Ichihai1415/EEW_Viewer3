@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml;
+using static EEW_Viewer3.Utilities.DataClasses;
 using static EEW_Viewer3.Utilities.Utils;
 
 namespace EEW_Viewer3
@@ -20,9 +21,9 @@ namespace EEW_Viewer3
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            Debug();
 #if DEBUG2
             ConWrite("<お知らせ>[Form1_Load]Debug2構成のため取得しません。");
+            Debug();
 #else
             await Get();
 #endif
@@ -111,7 +112,7 @@ namespace EEW_Viewer3
 
             var report_body = report.SelectSingleNode("xmlns_se:Body", nsmgr);
 
-
+            /*
             var data = new DataClasses.JMA.EarthquakeEarlyWarning
             {
                 Control = new DataClasses.JMA.EqVol_Common.C_Control
@@ -138,7 +139,7 @@ namespace EEW_Viewer3
                         Information = [.. newInfo]
                     }
                 }
-            };
+            };*/
         }
 
         internal static int? socketId = null;
@@ -149,13 +150,18 @@ namespace EEW_Viewer3
         /// <returns>(なし)</returns>
         public async Task Get()
         {
+            if(!File.Exists("apiKey"))
+            {
+                ConWrite("[Get]apiKayファイル(拡張子無し)を作成しapiKeyを書き込んでください",ConsoleColor.Red);
+                return;
+            }
             while (true)
                 try
                 {
                     using (ClientWebSocket client = new())
                     {
                     connect:
-                        var (url, socketId) = await ConnectDMDSS.GetWebSocketUrlID("AKe.wwF_Lx5WaSO_7GXSt8Ttvud0rJabS3Odkwf1wDO9Mli8");
+                        var (url, socketId) = await ConnectDMDSS.GetWebSocketUrlID(File.ReadAllText("apiKey"));
                         await client.ConnectAsync(new Uri(url), CancellationToken.None);
                         ConWrite("[Get]接続しました");
                         while (client.State == WebSocketState.Open)
@@ -184,7 +190,7 @@ namespace EEW_Viewer3
                             if (jsonText == null) continue;
                             if (jsonText == string.Empty) continue;
                             if (File.Exists("log-all"))//エラー出ても保存できるように臨時
-                                WriteLog(@$"output\json-all\" + DateTime.Now.ToString("yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
+                                WriteLog(@$"output\json-all\" + DateTime.Now.ToString(@"yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
                             var json = JsonNode.Parse(jsonText);
                             if (json == null) continue;
                             var type = (string?)json["type"];
@@ -194,16 +200,17 @@ namespace EEW_Viewer3
                                 switch (type)
                                 {
                                     case "ping":
-                                        var pong = new DataClasses.DMDSS.WebSocketV2_Response_PingPong() { Type = "pong", PingId = (string)json["pingId"] };
+                                        var pong = new DMDSS.WebSocketV2_Response_PingPong() { Type = "pong", PingId = (string)json["pingId"] };
                                         var pongSt = JsonSerializer.Serialize(pong);
                                         await client.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(pongSt)), WebSocketMessageType.Text, true, CancellationToken.None);
                                         ConWrite($"[Get]Sent  {pongSt}", ConsoleColor.DarkGreen);
                                         break;
                                     case "data":
-                                        WriteLog(@$"output\json-data\" + DateTime.Now.ToString("yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
+                                        WriteLog(@"output\json-data\" + DateTime.Now.ToString(@"yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
+                                        await Data(jsonText);
                                         break;
                                     default:
-                                        WriteLog(@$"output\json\" + DateTime.Now.ToString("yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
+                                        WriteLog(@"output\json\" + DateTime.Now.ToString(@"yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", jsonText);
                                         break;
                                 }
 
@@ -211,8 +218,7 @@ namespace EEW_Viewer3
                             catch (Exception ex)
                             {
                                 ConWrite($"[Get](JSON分析失敗)", ex);
-                                Directory.CreateDirectory($"Log\\Error\\{DateTime.Now:yyyyMM}\\{DateTime.Now:dd}");
-                                File.WriteAllText($"Log\\Error\\{DateTime.Now:yyyyMM}\\{DateTime.Now:dd}\\{DateTime.Now:yyyyMMddHHmmss.ffff}.txt", $"{ex}");
+                                WriteLog(@"Log\Error\" + DateTime.Now.ToString(@"yyyyMM\\dd\\yyyyMMddHHmmss.ffff") + ".txt", ex);
                                 continue;
                             }
                         }
@@ -220,12 +226,25 @@ namespace EEW_Viewer3
                 }
                 catch (Exception ex)
                 {
-                    ConWrite($"[Get]", ex);
+                    ConWrite("[Get]", ex);
                     if (!(ex.Message.Contains("リモート サーバーに接続できません。") || ex.Message.Contains("内部 WebSocket エラーが発生しました。")))//変える必要
-                        WriteLog(@"output\Error\" + DateTime.Now.ToString("yyyyMM\\dd\\yyyyMMddHHmmss.ffff") + ".txt", ex);
+                        WriteLog(@"output\Error\" + DateTime.Now.ToString(@"yyyyMM\\dd\\yyyyMMddHHmmss.ffff") + ".txt", ex);
                     await Task.Delay(10000);
                     ConWrite("[Get]切断されました。再接続します。");
                 }
+        }
+
+
+        private static async Task Data(string jsonSt)
+        {
+            var jsonN = JsonNode.Parse(jsonSt);
+            var type = (string?)jsonN["type"];
+            var json = JsonSerializer.Deserialize<DMDSS.WebSocketV2_Response_Data>(jsonSt);
+            var bodySt = Converters.ExtractDataString(json.Body, json.Compression, json.Encoding);
+            WriteLog(@"output\xml-data\" + DateTime.Now.ToString(@"yyyyMM\\dd\\HH\\yyyyMMddHHmmss.ffff") + ".json", bodySt);
+            ConWrite(bodySt, ConsoleColor.Green);
+            await Task.Delay(1);
+            return;
         }
 
         private async void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -237,6 +256,7 @@ namespace EEW_Viewer3
                     ConWrite("[Form1_FormClosing]正常に切断しました。");
                 else
                     ConWrite("[Form1_FormClosing]切断に失敗しました。" + closeCheck, ConsoleColor.Red);
+                await Task.Delay(1000);
             }
         }
     }
