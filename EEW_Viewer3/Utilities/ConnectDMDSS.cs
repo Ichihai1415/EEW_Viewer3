@@ -23,7 +23,9 @@ namespace EEW_Viewer3.Utilities
             var reqBody = new DataClasses.DMDSS.SocketV2_SocketStartV2_Request_RequestBody()
             {
                 Classifications = ["eew.forecast"],
-                Types = ["VXSE45"]
+                Types = ["VXSE45"],
+                Test = "including",
+                AppName = "EEW_Viewer3",
             };
 
             var req = new HttpRequestMessage()
@@ -42,7 +44,7 @@ namespace EEW_Viewer3.Utilities
                 if (resData.Websocket != null)
                     return (resData.Websocket.Url, resData.Websocket.Id);
             }
-            throw new Exception("Failed");
+            throw new Exception("Failed", new Exception("code: " + res.StatusCode));
         }
 
         /// <summary>

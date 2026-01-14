@@ -143,6 +143,7 @@ namespace EEW_Viewer3
         }
 
         internal static int? socketId = null;
+        internal int reconnectWait = 10000;
 
         /// <summary>
         /// WebSocketでデータを受信します。
@@ -150,9 +151,9 @@ namespace EEW_Viewer3
         /// <returns>(なし)</returns>
         public async Task Get()
         {
-            if(!File.Exists("apiKey"))
+            if (!File.Exists("apiKey"))
             {
-                ConWrite("[Get]apiKayファイル(拡張子無し)を作成しapiKeyを書き込んでください",ConsoleColor.Red);
+                ConWrite("[Get]apiKayファイル(拡張子無し)を作成しapiKeyを書き込んでください", ConsoleColor.Red);
                 return;
             }
             while (true)
@@ -164,6 +165,7 @@ namespace EEW_Viewer3
                         var (url, socketId) = await ConnectDMDSS.GetWebSocketUrlID(File.ReadAllText("apiKey"));
                         await client.ConnectAsync(new Uri(url), CancellationToken.None);
                         ConWrite("[Get]接続しました");
+                        reconnectWait = 10000;
                         while (client.State == WebSocketState.Open)
                         {
                             byte[] buffer = new byte[256 * 1024];//分割されるからこんなに要らないかも
@@ -229,8 +231,11 @@ namespace EEW_Viewer3
                     ConWrite("[Get]", ex);
                     if (!(ex.Message.Contains("リモート サーバーに接続できません。") || ex.Message.Contains("内部 WebSocket エラーが発生しました。")))//変える必要
                         WriteLog(@"output\Error\" + DateTime.Now.ToString(@"yyyyMM\\dd\\yyyyMMddHHmmss.ffff") + ".txt", ex);
-                    await Task.Delay(10000);
-                    ConWrite("[Get]切断されました。再接続します。");
+                    ConWrite("[Get]切断されました。" + reconnectWait / 1000 + "秒待機します。");
+                    await Task.Delay(reconnectWait);
+                    ConWrite("[Get]再接続します。");
+                    reconnectWait = Math.Min(60000, reconnectWait + 10000);
+
                 }
         }
 
